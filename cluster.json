@@ -1,0 +1,53 @@
+{
+  "cluster": {
+    "name": "cluster-demo",
+    "zone": "us-central1-a",
+    "network": "default",
+    "loggingService": "logging.googleapis.com",
+    "monitoringService": "monitoring.googleapis.com",
+    "nodePools": [
+      {
+        "name": "default-pool",
+        "initialNodeCount": 3,
+        "config": {
+          "machineType": "n1-standard-1",
+          "imageType": "COS",
+          "diskSizeGb": 100,
+          "preemptible": false,
+          "oauthScopes": [
+            "https://www.googleapis.com/auth/compute",
+            "https://www.googleapis.com/auth/devstorage.read_only",
+            "https://www.googleapis.com/auth/logging.write",
+            "https://www.googleapis.com/auth/monitoring.write",
+            "https://www.googleapis.com/auth/servicecontrol",
+            "https://www.googleapis.com/auth/service.management.readonly",
+            "https://www.googleapis.com/auth/trace.append"
+          ]
+        },
+        "autoscaling": {
+          "enabled": false
+        },
+        "management": {
+          "autoUpgrade": false,
+          "autoRepair": false,
+          "upgradeOptions": {}
+        }
+      }
+    ],
+    "initialClusterVersion": "1.7.2",
+    "masterAuth": {
+      "username": "",
+      "clientCertificateConfig": {
+        "issueClientCertificate": false
+      }
+    },
+    "subnetwork": "default",
+    "legacyAbac": {
+      "enabled": false
+    },
+    "masterAuthorizedNetworksConfig": {
+      "enabled": false,
+      "cidrBlocks": []
+    }
+  }
+}

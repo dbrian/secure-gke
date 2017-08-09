@@ -1,0 +1,55 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: wordpress
+  labels:
+    app: wordpress
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wordpress
+  template:
+    metadata:
+      labels:
+        app: wordpress
+    spec:
+      automountServiceAccountToken: False
+      containers:
+        - image: wordpress
+          name: wordpress
+          env:
+          - name: WORDPRESS_DB_HOST
+            value: mysql:3306
+          - name: WORDPRESS_DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysql
+                key: password
+          ports:
+            - containerPort: 80
+              name: wordpress
+          volumeMounts:
+            - name: wordpress-persistent-storage
+              mountPath: /var/www/html
+      initContainers:
+      - name: init-myservice
+        image: dbrian/iptables
+        command: ['sh', '-c', 'cat /etc/iptables/iptables.conf | iptables-restore -c']
+        securityContext:
+          capabilities:
+            add: ["NET_ADMIN"]
+        volumeMounts:
+          - name: iptables-config
+            mountPath: /etc/iptables/
+      volumes:
+        - name: wordpress-persistent-storage
+          gcePersistentDisk:
+            pdName: wordpress-disk
+            fsType: ext4
+        - name: iptables-config
+          configMap:
+            name: iptables-config
+            items:
+              - key: iptables.conf
+                path: iptables.conf

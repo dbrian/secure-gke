@@ -1,0 +1,71 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: wordpress
+  labels:
+    app: wordpress
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wordpress
+  template:
+    metadata:
+      labels:
+        app: wordpress
+    spec:
+      containers:
+        - image: wordpress
+          name: wordpress
+          securityContext:
+            # Does not work with apache.
+            runAsNonRoot: True
+            readOnlyRootFilesystem: True
+            capabilities:
+              drop:
+                - CHOWN
+                - NET_RAW
+                - SYS_CHROOT
+                - MKNOD
+          env:
+          - name: WORDPRESS_DB_HOST
+            value: 127.0.0.1:3306
+          - name: WORDPRESS_DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysql
+                key: password
+          ports:
+            - containerPort: 80
+              name: wordpress
+          volumeMounts:
+            - name: wordpress-persistent-storage
+              mountPath: /var/www/html
+        - image: dbrian/socat
+          name: mysqlproxy
+          imagePullPolicy: Always
+          command: ['sh', '-c', 'socat TCP-LISTEN:3306,fork TCP:mysql:3306']
+          ports:
+            - containerPort: 3306
+              name: mysqlproxy
+      initContainers:
+      - name: init-myservice
+        image: dbrian/iptables
+        command: ['sh', '-c', 'cat /etc/iptables/iptables.conf | iptables-restore -c']
+        securityContext:
+          capabilities:
+            add: ["NET_ADMIN"]
+        volumeMounts:
+          - name: iptables-config
+            mountPath: /etc/iptables/
+      volumes:
+        - name: wordpress-persistent-storage
+          gcePersistentDisk:
+            pdName: wordpress-disk
+            fsType: ext4
+        - name: iptables-config
+          configMap:
+            name: iptables-config
+            items:
+              - key: iptables.conf
+                path: iptables.conf

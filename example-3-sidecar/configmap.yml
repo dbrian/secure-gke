@@ -1,0 +1,16 @@
+kind: ConfigMap
+apiVersion: v1
+
+metadata:
+  name: iptables-config
+
+data:
+  iptables.conf: |
+    *filter
+    -N USER_OUTPUT
+    -A OUTPUT -m owner --uid-owner 33 -j USER_OUTPUT
+    -A USER_OUTPUT -d 169.254.0.0/16 -j DROP
+    -A USER_OUTPUT -d 10.0.0.0/8 -j DROP
+    -A USER_OUTPUT -d 172.16.0.0/12 -j DROP
+    -A USER_OUTPUT -d 192.168.0.0/16 -j DROP
+    COMMIT

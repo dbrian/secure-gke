@@ -1,0 +1,11 @@
+kind: ConfigMap
+apiVersion: v1
+
+metadata:
+  name: iptables-config
+
+data:
+  iptables.conf: |
+    *filter
+    -A OUTPUT -d 169.254.0.0/16 -j DROP
+    COMMIT
